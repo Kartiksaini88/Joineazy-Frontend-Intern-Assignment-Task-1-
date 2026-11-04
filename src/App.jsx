@@ -4,8 +4,7 @@ import StudentDashboard from "./pages/StudentDashboard";
 import { Link, Route, Routes, useNavigate } from "react-router-dom";
 
 function App() {
-
- const navigate = useNavigate();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -16,13 +15,13 @@ function App() {
         <div className="flex items-center gap-5">
           <span>Dashboard</span>
 
-         <select
-  onChange={(e) => navigate(e.target.value)}
-  className="bg-white text-gray-800 px-4 py-2 rounded-lg"
->
-  <option value="/">Student</option>
-  <option value="/admin">Admin</option>
-</select>
+          <select
+            onChange={(e) => navigate(e.target.value)}
+            className="bg-white text-gray-800 px-4 py-2 rounded-lg"
+          >
+            <option value="/">Student</option>
+            <option value="/admin">Admin</option>
+          </select>
         </div>
       </nav>
       <Routes>
