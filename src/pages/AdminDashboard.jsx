@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from "react";
+import { notifySuccess } from "./Toast/Toast";
 
 function AdminDashboard() {
   // Students List
@@ -13,51 +14,52 @@ function AdminDashboard() {
 
   // Initial Assignments
   const initialAssignments = [
-  {
-    id: 1,
-    title: "HTML & CSS Assignment",
-    description: "Create a responsive webpage using HTML and CSS.",
-    dueDate: "2026-11-05",
-    driveLink: "",
-    assignedTo: ["s1", "s2", "s3", "s4", "s5"],
-    students: 5,
-    submitted: 3,
-    pending: 2,
-    status:"pending"
-  },
-  {
-    id: 2,
-    title: "JavaScript Project",
-    description: "Build a calculator using JavaScript.",
-    dueDate: "2026-11-08",
-    driveLink: "",
-    assignedTo: ["s1", "s2", "s3"],
-    students: 3,
-    submitted: 2,
-    pending: 1,
-    status:"pending"
-  },
-];
- const [assignments, setAssignments] = useState(() => {
-  try {
-    const savedAssignments = localStorage.getItem("assignments");
+    {
+      id: 1,
+      title: "HTML & CSS Assignment",
+      description: "Create a responsive webpage using HTML and CSS.",
+      dueDate: "2026-11-05",
+      driveLink: "",
+      assignedTo: ["s1", "s2", "s3", "s4", "s5"],
+      students: 5,
+      submitted: 3,
+      pending: 2,
+      submittedBy: [],
+      status: "pending",
+    },
+    {
+      id: 2,
+      title: "JavaScript Project",
+      description: "Build a calculator using JavaScript.",
+      dueDate: "2026-11-08",
+      driveLink: "",
+      assignedTo: ["s1", "s2", "s3"],
+      students: 3,
+      submitted: 2,
+      pending: 1,
+      submittedBy: [],
+      status: "pending",
+    },
+  ];
 
-    return savedAssignments !== null
-      ? JSON.parse(savedAssignments)
-      : initialAssignments;
-  } catch (error) {
-    console.error("Error loading assignments:", error);
-    return initialAssignments;
-  }
-});
+  // Assignment State
+  const [assignments, setAssignments] = useState(() => {
+    try {
+      const savedAssignments = localStorage.getItem("assignments");
 
-useEffect(() => {
-  localStorage.setItem(
-    "assignments",
-    JSON.stringify(assignments)
-  );
-}, [assignments]);
+      return savedAssignments !== null
+        ? JSON.parse(savedAssignments)
+        : initialAssignments;
+    } catch (error) {
+      console.error("Error loading assignments:", error);
+      return initialAssignments;
+    }
+  });
 
+  // Save Assignments to LocalStorage
+  useEffect(() => {
+    localStorage.setItem("assignments", JSON.stringify(assignments));
+  }, [assignments]);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -70,7 +72,7 @@ useEffect(() => {
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [editId, setEditId] = useState(null);
 
-
+  // Handle Input Change
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -80,7 +82,7 @@ useEffect(() => {
     }));
   };
 
- 
+  // Select All Students
   const handleAllStudents = (e) => {
     if (e.target.checked) {
       setSelectedStudents(studentsList.map((s) => s.id));
@@ -89,6 +91,7 @@ useEffect(() => {
     }
   };
 
+  // Select Individual Student
   const handleStudentChange = (studentId) => {
     setSelectedStudents((prev) =>
       prev.includes(studentId)
@@ -97,6 +100,19 @@ useEffect(() => {
     );
   };
 
+  // Reset Form
+  const resetForm = () => {
+    setEditId(null);
+    setFormData({
+      title: "",
+      description: "",
+      dueDate: "",
+      driveLink: "",
+    });
+    setSelectedStudents([]);
+  };
+
+  // Create / Update Assignment
   const handleCreateAssignment = (e) => {
     e.preventDefault();
 
@@ -120,7 +136,7 @@ useEffect(() => {
       return;
     }
 
-    if (editId) {
+    if (editId !== null) {
       setAssignments((prev) =>
         prev.map((assignment) =>
           assignment.id === editId
@@ -129,17 +145,25 @@ useEffect(() => {
                 ...formData,
                 assignedTo: selectedStudents,
                 students: selectedStudents.length,
+                submittedBy: assignment.submittedBy || [],
+                submitted: Math.min(
+                  assignment.submitted || 0,
+                  selectedStudents.length
+                ),
                 pending: Math.max(
                   0,
-                  selectedStudents.length - assignment.submitted
+                  selectedStudents.length -
+                    Math.min(
+                      assignment.submitted || 0,
+                      selectedStudents.length
+                    )
                 ),
               }
             : assignment
         )
       );
 
-      alert("Assignment updated successfully!");
-      setEditId(null);
+      notifySuccess("Assignment updated successfully!");
     } else {
       const newAssignment = {
         id: Date.now(),
@@ -148,26 +172,19 @@ useEffect(() => {
         students: selectedStudents.length,
         submitted: 0,
         pending: selectedStudents.length,
-        status:"pending"
+        submittedBy: [],
+        status: "pending",
       };
 
       setAssignments((prev) => [...prev, newAssignment]);
 
-      alert("Assignment created successfully!");
+      notifySuccess("Assignment created successfully!");
     }
 
-    
-    setFormData({
-      title: "",
-      description: "",
-      dueDate: "",
-      driveLink: "",
-    });
-
-    setSelectedStudents([]);
+    resetForm();
   };
 
-  
+  // Edit Assignment
   const handleEdit = (assignment) => {
     setEditId(assignment.id);
 
@@ -178,7 +195,7 @@ useEffect(() => {
       driveLink: assignment.driveLink,
     });
 
-    setSelectedStudents(assignment.assignedTo);
+    setSelectedStudents(assignment.assignedTo || []);
 
     window.scrollTo({
       top: 0,
@@ -186,7 +203,7 @@ useEffect(() => {
     });
   };
 
- 
+  // Delete Assignment
   const handleDelete = (id) => {
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this assignment?"
@@ -198,33 +215,28 @@ useEffect(() => {
       );
 
       if (editId === id) {
-        setEditId(null);
-        setFormData({
-          title: "",
-          description: "",
-          dueDate: "",
-          driveLink: "",
-        });
-        setSelectedStudents([]);
+        resetForm();
       }
+
+      notifySuccess("Assignment deleted successfully!");
     }
   };
 
+  // Statistics
   const totalAssignments = assignments.length;
 
   const totalSubmissions = assignments.reduce(
-    (total, assignment) => total + assignment.submitted,
+    (total, assignment) => total + (assignment.submitted || 0),
     0
   );
 
   const pendingSubmissions = assignments.reduce(
-    (total, assignment) => total + assignment.pending,
+    (total, assignment) => total + (assignment.pending || 0),
     0
   );
 
   return (
-    <div className="min-h-screen bg-gray-100">
-
+    <div className="min-h-screen bg-gray-100 dark:bg-slate-950 text-gray-800 dark:text-white transition-colors duration-300">
       <main className="max-w-7xl mx-auto p-6">
 
         {/* Heading */}
@@ -233,11 +245,11 @@ useEffect(() => {
             ADMIN PANEL
           </p>
 
-          <h2 className="text-3xl font-bold text-gray-800 mt-2">
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-white mt-2">
             Admin Dashboard
           </h2>
 
-          <p className="text-gray-500 mt-2">
+          <p className="text-gray-500 dark:text-gray-400 mt-2">
             Manage assignments and monitor student submissions.
           </p>
         </div>
@@ -245,8 +257,10 @@ useEffect(() => {
         {/* Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <p className="text-gray-500">Total Assignments</p>
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800">
+            <p className="text-gray-500 dark:text-gray-400">
+              Total Assignments
+            </p>
             <h3 className="text-3xl font-bold mt-3">
               {totalAssignments}
             </h3>
@@ -255,8 +269,10 @@ useEffect(() => {
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <p className="text-gray-500">Total Submissions</p>
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800">
+            <p className="text-gray-500 dark:text-gray-400">
+              Total Submissions
+            </p>
             <h3 className="text-3xl font-bold text-green-600 mt-3">
               {totalSubmissions}
             </h3>
@@ -265,8 +281,10 @@ useEffect(() => {
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <p className="text-gray-500">Pending Submissions</p>
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800">
+            <p className="text-gray-500 dark:text-gray-400">
+              Pending Submissions
+            </p>
             <h3 className="text-3xl font-bold text-orange-500 mt-3">
               {pendingSubmissions}
             </h3>
@@ -278,14 +296,14 @@ useEffect(() => {
         </div>
 
         {/* Create Assignment Form */}
-        <div className="bg-white p-6 rounded-xl shadow-sm mb-8">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 mb-8">
 
           <div className="mb-6">
-            <h3 className="text-xl font-bold text-gray-800">
-              {editId ? "Edit Assignment" : "Create New Assignment"}
+            <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+              {editId !== null ? "Edit Assignment" : "Create New Assignment"}
             </h3>
 
-            <p className="text-gray-500 text-sm mt-1">
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
               Add assignment details and select students.
             </p>
           </div>
@@ -294,7 +312,7 @@ useEffect(() => {
 
             {/* Title */}
             <div>
-              <label className="block font-medium text-gray-700 mb-2">
+              <label className="block font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Assignment Title
               </label>
 
@@ -304,13 +322,13 @@ useEffect(() => {
                 value={formData.title}
                 onChange={handleChange}
                 placeholder="Enter assignment title"
-                className="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-lg p-3 outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="block font-medium text-gray-700 mb-2">
+              <label className="block font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Description
               </label>
 
@@ -320,7 +338,7 @@ useEffect(() => {
                 onChange={handleChange}
                 rows="4"
                 placeholder="Enter assignment description"
-                className="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-lg p-3 outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
@@ -328,7 +346,7 @@ useEffect(() => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
               <div>
-                <label className="block font-medium text-gray-700 mb-2">
+                <label className="block font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Due Date
                 </label>
 
@@ -337,12 +355,12 @@ useEffect(() => {
                   name="dueDate"
                   value={formData.dueDate}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg p-3"
+                  className="w-full border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-800 dark:text-white rounded-lg p-3"
                 />
               </div>
 
               <div>
-                <label className="block font-medium text-gray-700 mb-2">
+                <label className="block font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Google Drive Link
                 </label>
 
@@ -352,7 +370,7 @@ useEffect(() => {
                   value={formData.driveLink}
                   onChange={handleChange}
                   placeholder="Paste Google Drive URL"
-                  className="w-full border border-gray-300 rounded-lg p-3"
+                  className="w-full border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-lg p-3"
                 />
               </div>
 
@@ -360,15 +378,14 @@ useEffect(() => {
 
             {/* Assign Students */}
             <div>
-
-              <label className="block font-medium text-gray-700 mb-3">
+              <label className="block font-medium text-gray-700 dark:text-gray-200 mb-3">
                 Assign To Students
               </label>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
 
                 {/* All Students */}
-                <label className="flex items-center gap-2 bg-indigo-50 p-3 rounded-lg cursor-pointer">
+                <label className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/40 p-3 rounded-lg cursor-pointer">
                   <input
                     type="checkbox"
                     checked={
@@ -378,7 +395,7 @@ useEffect(() => {
                     className="accent-indigo-600"
                   />
 
-                  <span className="font-semibold text-indigo-700">
+                  <span className="font-semibold text-indigo-700 dark:text-indigo-300">
                     All Students
                   </span>
                 </label>
@@ -387,18 +404,16 @@ useEffect(() => {
                 {studentsList.map((student) => (
                   <label
                     key={student.id}
-                    className="flex items-center gap-2 border border-gray-200 p-3 rounded-lg cursor-pointer hover:bg-gray-50"
+                    className="flex items-center gap-2 border border-gray-200 dark:border-slate-700 p-3 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800"
                   >
                     <input
                       type="checkbox"
                       checked={selectedStudents.includes(student.id)}
-                      onChange={() =>
-                        handleStudentChange(student.id)
-                      }
+                      onChange={() => handleStudentChange(student.id)}
                       className="accent-indigo-600"
                     />
 
-                    <span className="text-gray-700">
+                    <span className="text-gray-700 dark:text-gray-200">
                       {student.name}
                     </span>
                   </label>
@@ -406,10 +421,9 @@ useEffect(() => {
 
               </div>
 
-              <p className="text-sm text-indigo-600 mt-3">
+              <p className="text-sm text-indigo-600 dark:text-indigo-400 mt-3">
                 {selectedStudents.length} students selected
               </p>
-
             </div>
 
             {/* Buttons */}
@@ -419,44 +433,32 @@ useEffect(() => {
                 type="submit"
                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition"
               >
-                {editId ? "Update Assignment" : "Create Assignment"}
+                {editId !== null ? "Update Assignment" : "Create Assignment"}
               </button>
 
-              {editId && (
+              {editId !== null && (
                 <button
                   type="button"
-                  onClick={() => {
-                    setEditId(null);
-                    setFormData({
-                      title: "",
-                      description: "",
-                      dueDate: "",
-                      driveLink: "",
-                    });
-                    setSelectedStudents([]);
-                  }}
-                  className="bg-gray-200 hover:bg-gray-300 px-6 py-3 rounded-lg font-semibold"
+                  onClick={resetForm}
+                  className="bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-800 dark:text-white px-6 py-3 rounded-lg font-semibold"
                 >
                   Cancel
                 </button>
               )}
 
             </div>
-
           </form>
         </div>
 
         {/* Manage Assignments */}
         <div className="mb-5">
-
-          <h3 className="text-2xl font-bold text-gray-800">
+          <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
             Manage Assignments
           </h3>
 
-          <p className="text-gray-500 mt-1">
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
             View assignment details and student progress.
           </p>
-
         </div>
 
         {/* Assignment Cards */}
@@ -464,12 +466,12 @@ useEffect(() => {
 
           {assignments.length === 0 ? (
 
-            <div className="bg-white p-8 rounded-xl text-center col-span-full">
-              <h3 className="font-semibold text-gray-700">
+            <div className="bg-white dark:bg-slate-900 p-8 rounded-xl text-center col-span-full">
+              <h3 className="font-semibold text-gray-700 dark:text-gray-200">
                 No Assignments Yet
               </h3>
 
-              <p className="text-gray-500 text-sm mt-2">
+              <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
                 Create your first assignment using the form above.
               </p>
             </div>
@@ -477,7 +479,6 @@ useEffect(() => {
           ) : (
 
             assignments.map((assignment) => {
-
               const progress =
                 assignment.students > 0
                   ? Math.round(
@@ -485,7 +486,7 @@ useEffect(() => {
                     )
                   : 0;
 
-              const assignedNames = assignment.assignedTo
+              const assignedNames = (assignment.assignedTo || [])
                 .map(
                   (id) =>
                     studentsList.find((student) => student.id === id)?.name
@@ -493,25 +494,24 @@ useEffect(() => {
                 .filter(Boolean);
 
               return (
-
                 <div
                   key={assignment.id}
-                  className="bg-white p-6 rounded-xl shadow-sm border border-gray-100"
+                  className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800"
                 >
 
-                  <h4 className="text-xl font-bold text-gray-800">
+                  <h4 className="text-xl font-bold text-gray-800 dark:text-white">
                     {assignment.title}
                   </h4>
 
-                  <p className="text-gray-500 mt-3">
+                  <p className="text-gray-500 dark:text-gray-400 mt-3">
                     {assignment.description}
                   </p>
 
-                  <p className="text-sm text-gray-500 mt-4">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
                     Due Date: {assignment.dueDate}
                   </p>
 
-                  <p className="text-sm text-indigo-600 mt-2 break-words">
+                  <p className="text-sm text-indigo-600 dark:text-indigo-400 mt-2 break-words">
                     Assigned To: {assignedNames.join(", ")}
                   </p>
 
@@ -520,7 +520,7 @@ useEffect(() => {
                       href={assignment.driveLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-blue-600 underline mt-2 inline-block"
+                      className="text-sm text-blue-600 dark:text-blue-400 underline mt-2 inline-block"
                     >
                       Open Google Drive Link
                     </a>
@@ -529,8 +529,8 @@ useEffect(() => {
                   {/* Stats */}
                   <div className="grid grid-cols-3 gap-3 mt-6">
 
-                    <div className="bg-gray-50 p-3 rounded-lg text-center">
-                      <p className="text-gray-500 text-xs">
+                    <div className="bg-gray-50 dark:bg-slate-800 p-3 rounded-lg text-center">
+                      <p className="text-gray-500 dark:text-gray-400 text-xs">
                         Students
                       </p>
 
@@ -539,7 +539,7 @@ useEffect(() => {
                       </h4>
                     </div>
 
-                    <div className="bg-green-50 p-3 rounded-lg text-center">
+                    <div className="bg-green-50 dark:bg-green-950/30 p-3 rounded-lg text-center">
                       <p className="text-green-600 text-xs">
                         Submitted
                       </p>
@@ -549,7 +549,7 @@ useEffect(() => {
                       </h4>
                     </div>
 
-                    <div className="bg-orange-50 p-3 rounded-lg text-center">
+                    <div className="bg-orange-50 dark:bg-orange-950/30 p-3 rounded-lg text-center">
                       <p className="text-orange-600 text-xs">
                         Pending
                       </p>
@@ -565,24 +565,20 @@ useEffect(() => {
                   <div className="mt-6">
 
                     <div className="flex justify-between mb-2 text-sm">
-
-                      <span className="font-semibold">
+                      <span className="font-semibold text-gray-700 dark:text-gray-200">
                         Submission Progress
                       </span>
 
-                      <span className="text-indigo-600 font-bold">
+                      <span className="text-indigo-600 dark:text-indigo-400 font-bold">
                         {progress}%
                       </span>
-
                     </div>
 
-                    <div className="bg-gray-200 h-3 rounded-full overflow-hidden">
-
+                    <div className="bg-gray-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden">
                       <div
                         className="bg-indigo-600 h-3 rounded-full transition-all"
                         style={{ width: `${progress}%` }}
                       />
-
                     </div>
 
                   </div>
@@ -592,14 +588,14 @@ useEffect(() => {
 
                     <button
                       onClick={() => handleEdit(assignment)}
-                      className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 py-2 rounded-lg font-semibold"
+                      className="flex-1 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 py-2 rounded-lg font-semibold"
                     >
                       Edit
                     </button>
 
                     <button
                       onClick={() => handleDelete(assignment.id)}
-                      className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg font-semibold"
+                      className="flex-1 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 py-2 rounded-lg font-semibold"
                     >
                       Delete
                     </button>
@@ -607,21 +603,13 @@ useEffect(() => {
                   </div>
 
                 </div>
-
               );
             })
-
           )}
 
         </div>
 
       </main>
-
-      {/* Footer */}
-      <footer className="text-center text-gray-500 py-6 mt-8">
-        © 2026 JoinEazy | Admin Dashboard
-      </footer>
-
     </div>
   );
 }
