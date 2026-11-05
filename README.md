@@ -1,16 +1,155 @@
-# React + Vite
+# 🎓 JoinEazy – Assignment Management Portal
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**JoinEazy** is a React-based Assignment Management Portal designed to simplify the process of creating, assigning, and tracking student assignments.
 
-Currently, two official plugins are available:
+The platform provides separate dashboards for Admins and Students, allowing faculty to manage assignments while students can view their assigned tasks and track their submission progress.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## ✨ Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 👨‍💻 Admin Dashboard
+- Create new assignments with title, description, and due date.
+- Assign tasks to individual students or all students.
+- Add Google Drive links to assignments.
+- Edit existing assignments.
+- Delete assignments with confirmation.
+- Monitor total assignments, submissions, and pending work.
+- Track submission progress through dynamic progress bars.
 
-## Expanding the ESLint configuration
+### 👨‍🎓 Student Dashboard
+- View assigned assignments.
+- Check assignment descriptions and due dates.
+- Open assignment resources through Google Drive links.
+- Submit assignments.
+- Track completed and pending assignments.
+- Monitor overall completion percentage.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 🎨 Additional Features
+- Light and Dark Mode.
+- Responsive design for different screen sizes.
+- LocalStorage for saving assignments and user session data.
+- Toast notifications for successful actions.
+- Role-based demo login (Admin / Student).
+- React Router navigation.
+
+---
+
+## 🛠️ Tech Stack
+
+| Technology | Purpose |
+|---|---|
+| React.js | Frontend development |
+| JavaScript | Application logic |
+| Tailwind CSS v4 | Styling and responsive UI |
+| React Router DOM | Page navigation |
+| React Toastify | Notifications |
+| LocalStorage | Client-side data persistence |
+
+---
+
+## 📂 Project Structure
+
+```text
+JoinEazy/
+│
+├── public/
+│
+├── src/
+│   ├── components/
+│   │   ├── AssignmentCard.jsx
+│   │   ├── Header.jsx
+│   │   ├── Sidebar.jsx
+│   │   └── StatCard.jsx
+│   │
+│   ├── Data/
+│   │   ├── dummyData.js
+│   │   └── students.js
+│   │
+│   ├── pages/
+│   │   ├── AdminDashboard.jsx
+│   │   ├── StudentDashboard.jsx
+│   │   └── Login.jsx
+│   │
+│   ├── Toast/
+│   │   └── Toast.jsx
+│   │
+│   ├── App.jsx
+│   ├── App.css
+│   └── index.css
+│
+├── package.json
+└── README.md
+```
+
+---
+
+## 🚀 Getting Started
+
+Follow these steps to run JoinEazy locally.
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-username/JoinEazy.git
+```
+
+### 2. Navigate to the Project Folder
+
+```bash
+cd JoinEazy
+```
+
+### 3. Install Dependencies
+
+```bash
+npm install
+```
+
+### 4. Start the Development Server
+
+```bash
+npm run dev
+```
+
+Open the local URL displayed in your terminal to access JoinEazy.
+
+---
+
+## 💾 Data Storage
+
+JoinEazy currently uses the browser's **LocalStorage** to store:
+
+- Assignment details.
+- Student assignment data.
+- Current login information.
+- Selected theme preference.
+
+No backend or database is currently required.
+
+> **Note:** This is a frontend demonstration project. Login is a demo role selector, not secure authentication. LocalStorage data is stored in the current browser and is not shared between different users or devices.
+
+---
+
+## 🔮 Future Improvements
+
+- Backend integration using Node.js and Express.
+- Database integration with MongoDB.
+- Secure authentication and authorization.
+- Individual student submission tracking.
+- Assignment file uploads.
+- Admin feedback and grading system.
+- Email notifications for upcoming deadlines.
+- Student performance analytics.
+
+
+
+## 👨‍💻 Author
+
+**Kartik saini**
+
+---
+
+⭐ If you like this project, consider giving it a star!
+
+**Built with ❤️ using React and Tailwind CSS.**
