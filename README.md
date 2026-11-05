@@ -131,17 +131,6 @@ No backend or database is currently required.
 
 ---
 
-## 🔮 Future Improvements
-
-- Backend integration using Node.js and Express.
-- Database integration with MongoDB.
-- Secure authentication and authorization.
-- Individual student submission tracking.
-- Assignment file uploads.
-- Admin feedback and grading system.
-- Email notifications for upcoming deadlines.
-- Student performance analytics.
-
 
 
 ## 👨‍💻 Author
