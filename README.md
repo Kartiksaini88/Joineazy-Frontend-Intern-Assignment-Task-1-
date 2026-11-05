@@ -129,15 +129,10 @@ No backend or database is currently required.
 
 > **Note:** This is a frontend demonstration project. Login is a demo role selector, not secure authentication. LocalStorage data is stored in the current browser and is not shared between different users or devices.
 
----
-
-
 
 ## 👨‍💻 Author
 
 **Kartik saini**
-
----
 
 ⭐ If you like this project, consider giving it a star!
 
